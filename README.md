@@ -1,24 +1,71 @@
-# Blackjack RL Card Counting Agent
+# Vision-Based Blackjack Strategic Assistant
 
-Reinforcement learning agents (TD Q-Learning and Monte Carlo) that learn optimal blackjack play and betting using the Hi-Lo card counting system.
+A monorepo with two decoupled components plus shared utilities:
+
+- **`cv_pipeline/`** — Real-time card detection and tracking via YOLOv8, with a Blackjack strategy advisory overlay on video.
+- **`RL_Agent/`** — Reinforcement learning agents (TD Q-Learning and Monte Carlo) that learn optimal blackjack play and betting using the Hi-Lo card counting system.
+- **`common/`** — Shared data models (card/hand logic) and strategy tables (Illustrious 18 deviations + Basic Strategy).
 
 ---
 
 ## Setup
 
+Install all dependencies:
+
 ```bash
-pip install gymnasium numpy matplotlib
+make install
 ```
 
-All scripts must be run from the `RL_Agent/` directory:
+Or install each component separately:
 
 ```bash
-cd RL_Agent
+make install-cv    # CV pipeline (YOLOv8, OpenCV, torch, etc.)
+make install-rl    # RL agent (gymnasium, numpy, matplotlib)
 ```
 
 ---
 
-## Running the Scripts
+## CV Pipeline
+
+The CV pipeline detects and tracks cards in a blackjack video, maintains a running count, and overlays strategy advice onto the output.
+
+### Run the assistant on a video
+
+```bash
+make run SOURCE=path/to/video.mp4
+```
+
+- Accepts `.mp4`, `.avi`, `.mov` video files
+- Annotated output is written to `cv_pipeline/output/annotated_output.mp4`
+- Uses pre-trained YOLOv8 weights in `cv_pipeline/detection/weights/`
+- Two pre-trained models are included: `table_detector.pt` (detects cards on the table) and `card_classifier.pt` (identifies rank/suit). Both were trained on Google Colab with an H100 GPU.
+
+### Data preparation
+
+1. Download datasets using `cv_pipeline/scripts/download_datasets.sh`.
+2. Run dataset preparation:
+
+```bash
+python -m cv_pipeline.detection.dataset_prep --config cv_pipeline/config.yaml
+```
+
+### Train YOLOv8
+
+```bash
+make train-cv
+```
+
+Best model is saved to `cv_pipeline/detection/weights/best.pt`.
+
+---
+
+## RL Agent
+
+All RL scripts must be run from the `RL_Agent/` directory:
+
+```bash
+cd RL_Agent
+```
 
 ### 1. Train the agent
 
